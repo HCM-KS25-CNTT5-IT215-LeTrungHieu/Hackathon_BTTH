@@ -73,10 +73,8 @@ def get_vehicle_by_id(vehicle_id: str, r: Request, db: Session = Depends(db_sess
     vehicle = db.get(Vehicle, vehicle_id)
 
     if not vehicle:
-        return ApiResponse(
-            statusCode=s.HTTP_404_NOT_FOUND,
-            message="Không tồn tại phương tiện",
-            path=r.url.path,
+        raise AppException(
+            status_code=s.HTTP_404_NOT_FOUND, message="Không tồn tại phương tiện"
         )
 
     return ApiResponse(
