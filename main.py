@@ -12,7 +12,13 @@ from exceptions import (
 )
 from models import Vehicle, VehicleStatus
 from response import ApiResponse
-from schemas import SortOrder, VehicleResponse, VehicleSortBy
+from schemas import (
+    SortOrder,
+    VehicleCreate,
+    VehicleResponse,
+    VehicleSortBy,
+    VehicleUpdate,
+)
 
 SORT_COLUMNS = {
     VehicleSortBy.ID: Vehicle.id,
@@ -81,5 +87,79 @@ def get_vehicle_by_id(vehicle_id: str, r: Request, db: Session = Depends(db_sess
         statusCode=s.HTTP_200_OK,
         data=vehicle,
         message="Lấy dữ liệu phương tiện thành công",
+        path=r.url.path,
+    )
+
+
+@app.post(
+    "/vehicles",
+    status_code=s.HTTP_201_CREATED,
+    response_model=ApiResponse[VehicleResponse],
+)
+def create_vehicle(body: VehicleCreate, r: Request, db: Session = Depends(db_session)):
+    vehicle = db.get(Vehicle, body.id)
+
+    if vehicle:
+        raise AppException(
+            status_code=s.HTTP_409_CONFLICT, message="Mã phương tiện đã tồn tại"
+        )
+
+    new_vehicle = Vehicle(**body.model_dump())
+
+    db.add(new_vehicle)
+
+    return ApiResponse(
+        statusCode=s.HTTP_201_CREATED,
+        message="Tạo phương tiện thành công",
+        data=new_vehicle,
+        path=r.url.path,
+    )
+
+
+@app.put(
+    "/vehicles/{vehicle_id}",
+    status_code=s.HTTP_200_OK,
+    response_model=ApiResponse[VehicleResponse],
+)
+def update_vehicle(
+    vehicle_id: str, body: VehicleUpdate, r: Request, db: Session = Depends(db_session)
+):
+    vehicle = db.get(Vehicle, vehicle_id)
+
+    if vehicle is None:
+        raise AppException(
+            status_code=s.HTTP_404_NOT_FOUND, message="Không tìm thấy phương tiện"
+        )
+
+    for key, value in body.model_dump(exclude_unset=True).items():
+        setattr(vehicle, key, value)
+
+    return ApiResponse(
+        statusCode=s.HTTP_200_OK,
+        message="Cập nhận phương tiện thành công",
+        data=vehicle,
+        path=r.url.path,
+    )
+
+
+@app.delete(
+    "/vehicles/{vehicle_id}",
+    status_code=s.HTTP_200_OK,
+    response_model=ApiResponse[VehicleResponse],
+)
+def delete_vehicle(vehicle_id: str, r: Request, db: Session = Depends(db_session)):
+    vehicle = db.get(Vehicle, vehicle_id)
+
+    if vehicle is None:
+        raise AppException(
+            status_code=s.HTTP_404_NOT_FOUND, message="Không tìm thấy phương tiện"
+        )
+
+    db.delete(vehicle)
+
+    return ApiResponse(
+        statusCode=s.HTTP_200_OK,
+        message="Xoá phương tiện thành công",
+        data=vehicle,
         path=r.url.path,
     )

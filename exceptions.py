@@ -44,7 +44,7 @@ def internal_exception_handler(r: Request, exc: Exception):
         content=ApiResponse(
             statusCode=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message="Lỗi phía server",
-            error=exc,
+            error=str(exc),
             path=r.url.path,
         ).model_dump(),
     )
