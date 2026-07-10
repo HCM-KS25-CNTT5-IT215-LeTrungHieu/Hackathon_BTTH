@@ -2,11 +2,21 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
+from models import VehicleStatus
+
 
 class VehicleResponse(BaseModel):
     id: str
     brand: str
     model: str
+
+
+class VehicleCreate(BaseModel):
+    id: str
+    brand: str
+    model: str
+    daily_rate: float
+    status: VehicleStatus
 
 
 class VehicleSortBy(StrEnum):

@@ -7,7 +7,7 @@ from database import Base
 
 
 class VehicleStatus(enum.Enum):
-    AVAILABLE = "avaiable"
+    AVAILABLE = "available"
     RENTED = "rented"
     MAINTENANCE = "maintenance"
 
