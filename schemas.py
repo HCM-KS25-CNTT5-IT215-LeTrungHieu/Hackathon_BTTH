@@ -9,6 +9,8 @@ class VehicleResponse(BaseModel):
     id: str
     brand: str
     model: str
+    daily_rate: float
+    status: VehicleStatus
 
 
 class VehicleCreate(BaseModel):
