@@ -12,7 +12,13 @@ from exceptions import (
 )
 from models import Vehicle, VehicleStatus
 from response import ApiResponse
-from schemas import VehicleResponse
+from schemas import SortOrder, VehicleResponse, VehicleSortBy
+
+SORT_COLUMNS = {
+    VehicleSortBy.ID: Vehicle.id,
+    VehicleSortBy.DAILY_RATE: Vehicle.daily_rate,
+    VehicleSortBy.PRODUCTION_YEAR: Vehicle.production_year,
+}
 
 app = FastAPI()
 
@@ -33,13 +39,21 @@ def get_vehicles(
     r: Request,
     brand: str | None = None,
     status: VehicleStatus | None = None,
+    sort_by: VehicleSortBy = VehicleSortBy.ID,
+    order: SortOrder = SortOrder.ASC,
     db: Session = Depends(db_session),
 ):
+
     stmt = select(Vehicle)
+    if brand:
+        stmt = stmt.where(Vehicle.brand.ilike(f"%{brand}%"))
     if status:
         stmt = stmt.where(Vehicle.status == status)
 
-    vehicles = db.scalars(stmt)
+    column = SORT_COLUMNS[sort_by]
+    stmt = stmt.order_by(column.desc() if order == SortOrder.DESC else column.asc())
+
+    vehicles = db.scalars(stmt).all()
 
     return ApiResponse(
         statusCode=s.HTTP_200_OK,
